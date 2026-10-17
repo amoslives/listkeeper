@@ -1,0 +1,158 @@
+/* listkeeper */
+
+.listkeeper-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  align-items: center;
+  margin-bottom: 0.6em;
+}
+
+.listkeeper-controls input[type="search"] {
+  flex: 1 1 14em;
+  min-width: 8em;
+}
+
+.listkeeper-count {
+  color: var(--text-muted);
+  font-size: var(--font-smaller);
+  margin-left: auto;
+}
+
+.listkeeper-wrap {
+  position: relative;
+}
+
+/* a fade on the right edge while there is more table to the right */
+.listkeeper-wrap.listkeeper-more::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 56px;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, var(--background-primary));
+}
+
+.listkeeper-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* a mirror of the table's scrollbar, pinned to the bottom of the view while the table is on
+   screen; visible while scrolling or under the pointer, faded otherwise */
+.listkeeper-hbar {
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 12px;
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin-top: -12px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.listkeeper-hbar.is-active,
+.listkeeper-hbar:hover {
+  opacity: 1;
+}
+
+.listkeeper-hbar > div {
+  height: 1px;
+}
+
+.listkeeper-hbar::-webkit-scrollbar {
+  height: 10px;
+}
+
+.listkeeper-hbar::-webkit-scrollbar-track {
+  background: var(--background-secondary);
+  border-radius: 5px;
+}
+
+.listkeeper-hbar::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb-bg, rgba(128, 128, 128, 0.5));
+  border-radius: 5px;
+}
+
+/* the frozen first columns */
+table.listkeeper-rows .listkeeper-frozen {
+  position: sticky;
+  z-index: 2;
+  background: var(--background-primary);
+}
+
+table.listkeeper-rows thead .listkeeper-frozen {
+  z-index: 3;
+}
+
+table.listkeeper-rows .listkeeper-frozen-last {
+  box-shadow: 6px 0 8px -6px rgba(0, 0, 0, 0.35);
+}
+
+table.listkeeper-rows {
+  width: max-content;
+  min-width: 100%;
+  font-size: var(--font-smaller);
+  border-collapse: collapse;
+}
+
+/* !important: Obsidian's editor table rules outrank a plain class selector */
+table.listkeeper-rows th,
+table.listkeeper-rows td {
+  padding: 0.15em 0.6em !important;
+  white-space: nowrap !important;
+  vertical-align: top;
+  line-height: 1.4;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+table.listkeeper-rows th.listkeeper-sortable {
+  cursor: pointer;
+  text-align: left;
+  user-select: none;   /* shift-click adds a sort key; it must not select text */
+}
+
+table.listkeeper-rows th.listkeeper-sortable:hover {
+  color: var(--text-accent);
+}
+
+table.listkeeper-rows td.listkeeper-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+table.listkeeper-rows th.listkeeper-group {
+  text-align: center;
+  font-size: var(--font-smallest);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-left: 1px solid var(--background-modifier-border);
+  border-bottom: none;
+}
+
+table.listkeeper-rows th.listkeeper-group:first-child {
+  border-left: none;
+}
+
+/* the description wraps to three lines; the cell's hover text holds all of it */
+table.listkeeper-rows td.listkeeper-desc {
+  min-width: 22em;
+  max-width: 30em;
+  white-space: normal !important;
+}
+
+table.listkeeper-rows td.listkeeper-desc .listkeeper-clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+.status-bar-item.plugin-listkeeper {
+  color: var(--text-muted);
+}

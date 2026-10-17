@@ -1,0 +1,9 @@
+# plugin runtime state: token, list configs, star history, run logs
+data.json
+data/
+.DS_Store
+node_modules/
+
+# raw full-window captures never belong in the repo
+screenshots/*-raw.png
+.claude/
