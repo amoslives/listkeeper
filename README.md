@@ -1,32 +1,28 @@
 # Listkeeper
 
-Point Listkeeper at any awesome list or best-of list on GitHub. The whole list lands in your vault as two notes and one table that shows which projects are alive, which carry published security advisories, and which ones the list itself has quietly dropped.
+Listkeeper turns an awesome list or best-of list on GitHub into two notes in your vault: a view note with a sortable table of every repository in the list, and an entries note with one bullet per repository. It fetches GitHub data for each repository, gives it a verdict, and refreshes on a schedule.
 
 [![License](https://img.shields.io/github/license/amoslives/listkeeper)](LICENSE)
 
 ![A list of 195 agent harnesses displayed as a table in Obsidian. Each row shows the verdict, the name, an Actions column with Evidence / review and Research, activity, assessment, new concerns, section and description; the remaining default columns are off-screen to the right.](screenshots/hero.png)
 
-An awesome list is a snapshot. The repositories behind it keep moving: some get archived, some pick up CVEs, some stop merging pull requests while their stars keep climbing. Listkeeper reads the list, asks GitHub about every repository in it, and keeps the answers in two notes that stay current on a schedule.
-
-- **The whole list in two notes.** A list of 1,000 projects becomes one view note holding the table and one entries note holding a bullet per project, not 1,000 files. The entries note keeps every value in inline fields that Dataview can read.
-- **A verdict with evidence.** Every row gets `ok`, `caution`, `check` or `unknown` from documented rules: archived, dropped by the source, deprecated in the source text, published advisories, an untouched issue backlog, a non-standard licence. One tap shows the facts behind it and records your own dated assessment next to them.
-- **Security advisories, not only stars.** With a token, each repository's published advisories arrive with severity and affected and patched version ranges.
-- **Your edits survive refreshes.** Edited descriptions, your own headings and sub-bullets stay where you put them. A sync shows what the source list changed and lets you accept or dismiss it per entry.
-- **Star movement two ways.** Additions over the last four completed GitHub weeks on the first run, and a local net change once a sample between 20 and 60 days old exists.
-- **Light footprint.** No build step, no runtime dependency, no telemetry. It works on mobile, needs no token for the basics, and resumes an interrupted run after a reload.
+- **The whole list in two notes.** A list of 1,000 projects becomes one view note and one entries note, not 1,000 files. The entries note keeps every value in inline fields that Dataview can read.
+- **A verdict for every repository.** Documented rules turn GitHub data into `ok`, `caution`, `check` or `unknown`: archived, dropped by the source list, marked deprecated in the source text, published advisories, at least 20 open issues with under a quarter touched in 90 days, or a licence GitHub cannot identify. A dialog on each row shows the reasons and stores your dated assessment.
+- **Security advisories.** With a token, each repository's published advisories are listed with severity and the affected and patched version ranges.
+- **Edits survive refreshes.** A refresh replaces only the generated entry lines. Edited descriptions, your own headings and sub-bullets are kept. A sync shows what changed in the source list, and you accept or dismiss each change.
+- **Star history.** Additions over the last four completed GitHub weeks from the first run, and a local net change once a stored sample between 20 and 60 days old exists.
+- **No build step, no runtime dependency, no telemetry.** It runs on mobile and without a token, within GitHub's anonymous limits. An interrupted run resumes after a reload.
 
 ## How it compares
 
 | Plugin | Starts from | Covers | Adds to the vault |
 |---|---|---|---|
-| Listkeeper | Any awesome list or best-of list on GitHub | Every repository in the list, in one table | A verdict with evidence per repository, published advisories, star history, source sync, scheduled refresh |
+| Listkeeper | Any awesome list or best-of list on GitHub | Every repository in the list, in one table | A verdict per repository, published advisories, star history, source sync, scheduled refresh |
 | GitHub Stars | Repository links in your own notes | Those links | Star counts |
 | GitHub Stars Manager | The repositories you starred | Your star list | A way to manage it |
 | Import GitHub Readme | One README | One file | The README text |
 | GitHub Repo Tools | One repository | One repository | Staleness alerts, a pull request dashboard, activity notifications |
 | GitHub Embeds | An issue, a pull request or a code snippet | One item per embed | A rendered embed |
-
-Listkeeper starts from someone else's curated list, judges every repository in it by the same rules, and keeps judging as the list and the repositories change.
 
 The verdict is a review aid, not a security guarantee or an installation recommendation.
 
