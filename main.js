@@ -559,10 +559,10 @@ module.exports = class Listkeeper extends Plugin {
       await this.app.vault.create(path, view);
       return;
     }
-    const text = await this.app.vault.read(existing);
-    // a view note that already holds the block keeps whatever else you wrote in it
-    const out = text.includes(block) ? text.replace(/^\d+ (?:entry|entries) from .*$/m, count) : view;
-    if (out !== text) await this.app.vault.modify(existing, out);
+    // a view note that already holds the block keeps whatever else you wrote in it;
+    // vault.process is atomic and writes nothing when the text comes back unchanged
+    await this.app.vault.process(existing, (text) =>
+      text.includes(block) ? text.replace(/^\d+ (?:entry|entries) from .*$/m, count) : view);
   }
 
   /** vault.create throws ENOENT when the parent folder is missing, so make it first. */
@@ -956,7 +956,7 @@ module.exports = class Listkeeper extends Plugin {
       const source = row.state.source;
       const value = source?.conflicts?.[field];
       if (value !== expected) {
-        new Notice("The source change has changed. Reopen Evidence / source changes before deciding.", 7000);
+        new Notice("The source change has changed. Reopen the evidence dialog before deciding.", 7000);
         return row;
       }
       if (value !== undefined) {
@@ -1070,7 +1070,9 @@ module.exports = class Listkeeper extends Plugin {
     const rows = notes.map(({ fm }) => ({
       name: fm.app || fm.repo, section: fm.section || "Uncategorised",
       description: fm.description, readme_intro: fm.readme_intro,
-      url: fm.url, homepage: fm.homepage, repo: fm.repo, stars: fm.stars,
+      // a note with a repo but no url still needs a link, or the table cannot read the bullet back
+      url: fm.url || (fm.repo ? `https://github.com/${fm.repo}` : undefined),
+      homepage: fm.homepage, repo: fm.repo, stars: fm.stars,
       stars_gained_30d: fm.stars_gained_30d, forks: fm.forks,
       open_issues: fm.open_issues, language: fm.language, license: fm.license,
       created: fm.created, last_push: fm.last_push, archived: fm.archived,
@@ -1165,7 +1167,7 @@ module.exports = class Listkeeper extends Plugin {
     let configs = this.loadConfigs();
     if (onlyTag) configs = configs.filter((c) => c.tag === onlyTag);
     if (!configs.length) {
-      new Notice("No lists yet. Run \"Add a list from GitHub\" to make one.", 6000);
+      new Notice("No lists yet. Use the command palette to add a list from GitHub.", 6000);
       return;
     }
     if (this.running) return;
@@ -1248,22 +1250,23 @@ module.exports = class Listkeeper extends Plugin {
 
     const file = await this.entriesFile(cfg);
     if (!file) return;
-    const text = await this.app.vault.read(file);
-    const out = [];
     let changed = 0;
-    for (const line of text.split("\n")) {
-      const repo = this.lineRepo(line);
-      if (!repo) { out.push(line); continue; }
-      const found = new Set();
-      for (const id of identities(readRow(line, "")))
-        for (const label of membership.get(id) || []) found.add(label);
-      const count = 1 + found.size;
-      let next = line.replace(/\s*\[lists:: \d+\]/, "");
-      if (count > 1) next = `${next} [lists:: ${count}]`;
-      if (next !== line) changed++;
-      out.push(next);
-    }
-    if (changed) await this.app.vault.modify(file, out.join("\n"));
+    await this.app.vault.process(file, (text) => {
+      const out = [];
+      for (const line of text.split("\n")) {
+        const repo = this.lineRepo(line);
+        if (!repo) { out.push(line); continue; }
+        const found = new Set();
+        for (const id of identities(readRow(line, "")))
+          for (const label of membership.get(id) || []) found.add(label);
+        const count = 1 + found.size;
+        let next = line.replace(/\s*\[lists:: \d+\]/, "");
+        if (count > 1) next = `${next} [lists:: ${count}]`;
+        if (next !== line) changed++;
+        out.push(next);
+      }
+      return changed ? out.join("\n") : text;
+    });
     const line = `crosslist: ${scanned} peer lists scanned, ${changed} entries updated`;
     new Notice(`${cfg.label} ${line}`, 7000);
     await this.logRun(cfg, line);
@@ -1865,7 +1868,7 @@ class AddListModal extends Modal {
       .setDesc("Only if the list is not in README.md. Filled in automatically from a /blob/ link.")
       .addText((t) => t.setPlaceholder("docs/list.md")
         .onChange((v) => { this.values.readmePath = v.trim(); }));
-    new Setting(contentEl).setName("Limit").setDesc("Stop after N entries, to try a list out.")
+    new Setting(contentEl).setName("Limit").setDesc("Stop after this many entries, to try a list out.")
       .addText((t) => t.onChange((v) => { this.values.limit = v.trim(); }));
 
     new Setting(contentEl).addButton((b) => b.setButtonText("Build it").setCta().onClick(async () => {
@@ -2009,77 +2012,59 @@ class PickListModal extends SuggestModal {
 
 // ---------------------------------------------------------------- settings
 
+const SCHEDULES = { off: "Off", daily: "Daily", weekly: "Weekly" };
+const SCHEDULE_MODES = { refresh: "Refresh data only", sync: "Sync then refresh",
+  crosslist: "Cross-list then refresh", all: "Sync, cross-list, refresh" };
+const EXPECTATIONS = { software: "Software", reference: "Reference list / complete resource" };
+
 class ListkeeperSettingTab extends PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
 
-  display() {
-    const { containerEl } = this;
-    containerEl.empty();
-
-    new Setting(containerEl).setName("GitHub token")
-      .setDesc("Optional. Create a fine-grained token for public repository read access. No write permissions needed. Adds full activity fields and higher rate limits.")
-      .addText((t) => { t.inputEl.type = "password"; t.setPlaceholder("github_pat_...").setValue(this.plugin.settings.token)
-        .onChange(async (v) => { this.plugin.settings.token = v.trim(); await this.plugin.saveSettings(); }); });
-    containerEl.createEl("a", { text: "Create a GitHub token", href: "https://github.com/settings/personal-access-tokens/new" });
-    new Setting(containerEl).setName("Validate token").addButton((b) => b.setButtonText("Validate").onClick(async () => {
-      new Notice(await this.plugin.validateToken(), 10000);
-    }));
-
-    new Setting(containerEl).setName("Schedule")
-      .addDropdown((d) => d.addOptions({ off: "Off", daily: "Daily", weekly: "Weekly" })
-        .setValue(this.plugin.settings.schedule)
-        .onChange(async (v) => {
-          this.plugin.settings.schedule = v;
-          await this.plugin.saveSettings();
-          new Notice("Reload Obsidian for the new schedule to take effect.", 5000);
-        }));
-
-    new Setting(containerEl).setName("What the schedule does")
-      .addDropdown((d) => d.addOptions({
-        refresh: "Refresh data only", sync: "Sync then refresh",
-        crosslist: "Cross-list then refresh", all: "Sync, cross-list, refresh" })
-        .setValue(this.plugin.settings.scheduleMode)
-        .onChange(async (v) => { this.plugin.settings.scheduleMode = v; await this.plugin.saveSettings(); }));
-
-    new Setting(containerEl).setName("Skip unless data is older than")
-      .setDesc("Days. Stops a scheduled or startup run hitting GitHub when nothing is stale.")
-      .addText((t) => t.setValue(String(this.plugin.settings.staleAfterDays))
-        .onChange(async (v) => {
-          this.plugin.settings.staleAfterDays = parseInt(v, 10) || 0;
-          await this.plugin.saveSettings();
-        }));
-
-    new Setting(containerEl).setName("Also run on startup")
-      .addToggle((t) => t.setValue(this.plugin.settings.runOnStartup)
-        .onChange(async (v) => { this.plugin.settings.runOnStartup = v; await this.plugin.saveSettings(); }));
-
-    new Setting(containerEl).setName("Requests per run without a token")
-      .setDesc("Shared across repository, star-history and advisory-page requests. Unattempted work goes first, then least recently attempted, across every list. GitHub response limits also apply.")
-      .addText((t) => t.setValue(String(this.plugin.settings.noTokenBudget))
-        .onChange(async (v) => {
-          this.plugin.settings.noTokenBudget = parseInt(v, 10) || 55;
-          await this.plugin.saveSettings();
-        }));
-
-    const lists = this.plugin.loadConfigs();
-    new Setting(containerEl).setName("Lists managed").setHeading().setDesc(
-      lists.length ? "Choose project expectations and optional advisory checks for each list."
-                   : "None yet. Use the \"Add a list from GitHub\" command.")
-      .addButton((b) => b.setButtonText("Refresh now").onClick(() => this.plugin.run("all")));
-    for (const c of lists) {
-      new Setting(containerEl).setName(`${c.label}: project expectations`)
-        .addDropdown((d) => d.addOptions({ software: "Software", reference: "Reference list / complete resource" })
-          .setValue(c.expectation || "software").onChange(async (v) => {
-            c.expectation = v; await this.plugin.rememberList(c);
-          }));
-      new Setting(containerEl).setName(c.label).setDesc(`${c.source}, advisories`)
-        .addToggle((t) => t.setValue(!!c.advisories).onChange(async (v) => {
-          c.advisories = v;
-          await this.plugin.rememberList(c);
-        }));
-    }
+  /**
+   * The settings tab, described rather than drawn: Obsidian renders it and indexes it for
+   * settings search. Controls bind to a key of plugin.settings and save on their own.
+   */
+  getSettingDefinitions() {
+    const plugin = this.plugin;
+    const lists = plugin.loadConfigs();
+    return [
+      { name: "GitHub token",
+        desc: "Optional. A fine-grained token with read access to public repositories adds the full activity fields and higher rate limits. It is sent only to api.github.com.",
+        render: (setting) => {
+          setting.addText((t) => { t.inputEl.type = "password"; t.setPlaceholder("github_pat_...").setValue(plugin.settings.token)
+            .onChange(async (v) => { plugin.settings.token = v.trim(); await plugin.saveSettings(); }); });
+          setting.descEl.createEl("br");
+          setting.descEl.createEl("a", { text: "Create a GitHub token", href: "https://github.com/settings/personal-access-tokens/new" });
+        } },
+      { name: "Validate token", desc: "Asks GitHub whether the token works and shows the remaining request allowances.",
+        action: async () => { new Notice(await plugin.validateToken(), 10000); } },
+      { name: "Schedule", desc: "Takes effect after Obsidian reloads.",
+        control: { type: "dropdown", key: "schedule", options: SCHEDULES, defaultValue: DEFAULT_SETTINGS.schedule } },
+      { name: "What the schedule does",
+        control: { type: "dropdown", key: "scheduleMode", options: SCHEDULE_MODES, defaultValue: DEFAULT_SETTINGS.scheduleMode } },
+      { name: "Skip unless data is older than",
+        desc: "Days. Stops a scheduled or startup run hitting GitHub when nothing is stale.",
+        control: { type: "number", key: "staleAfterDays", min: 0, defaultValue: DEFAULT_SETTINGS.staleAfterDays } },
+      { name: "Also run on startup", control: { type: "toggle", key: "runOnStartup" } },
+      { name: "Requests per run without a token",
+        desc: "Shared across repository, star-history and advisory-page requests. Unattempted work goes first, then least recently attempted, across every list. GitHub response limits also apply.",
+        control: { type: "number", key: "noTokenBudget", min: 1, defaultValue: DEFAULT_SETTINGS.noTokenBudget } },
+      { type: "group", heading: "Lists managed", items: [
+        { name: "Refresh now",
+          desc: lists.length ? "Sync, cross-list and refresh every list." : "None yet. Use the command palette to add a list from GitHub.",
+          action: () => plugin.run("all") },
+        ...lists.flatMap((c) => [
+          { name: `${c.label}: project expectations`, desc: c.source,
+            render: (setting) => setting.addDropdown((d) => d.addOptions(EXPECTATIONS).setValue(c.expectation || "software")
+              .onChange(async (v) => { c.expectation = v; await plugin.rememberList(c); })) },
+          { name: `${c.label}: security advisories`, desc: "Fetch published advisories for this list on later refreshes.",
+            render: (setting) => setting.addToggle((t) => t.setValue(!!c.advisories)
+              .onChange(async (v) => { c.advisories = v; await plugin.rememberList(c); })) },
+        ]),
+      ] },
+    ];
   }
 }

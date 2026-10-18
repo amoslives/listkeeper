@@ -4,7 +4,7 @@ Listkeeper turns a Markdown list of GitHub projects into a sortable table in an 
 
 [![License](https://img.shields.io/github/license/amoslives/listkeeper)](LICENSE)
 
-![A list of 177 agent tools displayed as a table in Obsidian. The table includes the verdict, name, section, description, stars, stars gained, last push, recent commits, engagement, criticality, issue ratio, advisories, and license.](screenshots/hero.png)
+![A list of 194 agent harnesses displayed as a table in Obsidian. Each row shows the verdict, the name with its Evidence / review and Research actions, activity, assessment, new concerns, section and description; the remaining default columns are off-screen to the right.](screenshots/hero.png)
 
 Give Listkeeper an awesome list, a best-of list, or another Markdown file that links to GitHub repositories. It reads links from Markdown bullets and tables, fetches repository data from GitHub, and creates two notes:
 
@@ -35,7 +35,7 @@ stars>1000 lang:rust pushed>2026-06-01
 
 All active terms must match a row. A leading `-` excludes matches.
 
-![The table filtered with verdict:check. The remaining rows show the fields that caused a check verdict.](screenshots/filter-check.png)
+![The table filtered with verdict:check. Seven rows remain, and their sections, activity and new concerns show why each needs a check before installing.](screenshots/filter-check.png)
 
 Up to 13 columns are selected by default. A column appears only when at least one entry contains that field. Use **Columns**, or right-click the header row, to change the selection. Hidden columns can still be used in filters.
 
@@ -45,23 +45,32 @@ Tap **Evidence / review** under a project name to see automatic concerns, check 
 
 Tap **Research** to create a note only for the selected project, or reopen its explicitly attached research link. Your research note contains a repository link and an editable heading; fetched metadata remains in the entries note.
 
-![The Add a list dialog with its source, folder, thresholds, advisory, peer-list, Markdown-file, and limit fields.](screenshots/add-list.png)
+![The Add a list dialog with its source, name, folder, threshold, project expectation, advisory, peer-list, Markdown-file and limit fields.](screenshots/add-list.png)
 
 On a narrow screen, the table scrolls horizontally while the Verdict and Name columns remain visible. The screenshots use the Minimal theme.
 
+## Network use and accounts
+
+Listkeeper connects to two GitHub hosts and to nothing else:
+
+- `raw.githubusercontent.com` serves the source list's Markdown and the READMEs of any peer lists you configure.
+- `api.github.com` serves repository metadata (REST without a token, GraphQL with one), star history, published security advisories when a list has them enabled, and token validation.
+
+Requests run when you add, refresh, or sync a list, and on the schedule you choose. The plugin sends no telemetry and reads no files outside the vault.
+
+A GitHub account is optional. Without a token, Listkeeper uses GitHub's unauthenticated limits and a per-run request allowance, and the activity fields that need GraphQL remain empty. A fine-grained token with read access to public repository metadata provides the full field set and higher limits. The token is stored in the plugin's `data.json` inside the vault and is sent only to `api.github.com`.
+
 ## Installation
 
-Listkeeper is not yet listed in the Obsidian community plugin directory. Install it with BRAT or from the GitHub release:
+Listkeeper needs Obsidian 1.13.0 or later. Install it with BRAT or from the GitHub release:
 
 **With BRAT:** install BRAT, run **Add a beta plugin for testing**, and enter `amoslives/listkeeper`. BRAT downloads the latest Listkeeper release and handles later updates.
 
 **Manually:** download `main.js`, `manifest.json`, and `styles.css` from the latest GitHub release. Copy them into `<vault>/.obsidian/plugins/listkeeper/`, restart Obsidian, and enable Listkeeper under **Settings > Community plugins**.
 
-Installation through the Obsidian community plugin directory will be available only if the plugin is submitted and accepted there.
-
 ## Quick start
 
-1. Open **Settings > Listkeeper**, follow **Create a GitHub token**, enter a fine-grained token, and click **Validate**. For public repositories, Listkeeper only needs read access to public repository metadata; it does not need write access.
+1. Open **Settings > Listkeeper**, follow **Create a GitHub token**, enter a fine-grained token, and select **Validate token**. For public repositories, Listkeeper only needs read access to public repository metadata; it does not need write access.
 2. Run **Add a list from GitHub** from the command palette.
 3. Enter `owner/repository`, a GitHub repository URL, a URL with a heading anchor, or a `/blob/` link to a Markdown file.
 4. Open the generated view note. Click a header to sort, Shift-click another header to add a second sort key, type in the filter box, or select a preset.

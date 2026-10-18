@@ -62,7 +62,7 @@ Authenticated requests provide:
 - the latest release, releases in the last year, the security-policy flag, and GitHub's `mentionableUsers` count
 - the first usable paragraph of the repository README, used when the source list has no description
 
-For public repositories, use a fine-grained token with read access to public repository metadata. Listkeeper does not need repository write access. Follow **Create a GitHub token** in settings, paste the token into the password field, and use **Validate** to check whether GitHub accepts it and see the remaining REST and GraphQL allowances. Tokens are sent only to `api.github.com` and are never included in notices.
+For public repositories, use a fine-grained token with read access to public repository metadata. Listkeeper does not need repository write access. Follow **Create a GitHub token** in settings, paste the token into the password field, and select **Validate token** to check whether GitHub accepts it and see the remaining REST and GraphQL allowances. Tokens are sent only to `api.github.com` and are never included in notices.
 
 Obsidian stores the token in the plugin's `data.json` file. This is plain plugin configuration inside the vault. Do not publish, sync to an untrusted location, or share that file.
 
