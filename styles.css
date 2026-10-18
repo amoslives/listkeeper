@@ -99,14 +99,20 @@ table.listkeeper-rows {
   border-collapse: collapse;
 }
 
-/* !important: Obsidian's editor table rules outrank a plain class selector */
 table.listkeeper-rows th,
 table.listkeeper-rows td {
-  padding: 0.15em 0.6em !important;
-  white-space: nowrap !important;
   vertical-align: top;
   line-height: 1.4;
   border-bottom: 1px solid var(--background-modifier-border);
+}
+
+/* padding and wrapping only: three classes plus the cell path outrank the table rules of
+   Obsidian and the common themes, including the first-column edge padding of Minimal,
+   while the group header keeps its own border rule */
+.listkeeper-wrap > .listkeeper-scroll > table.listkeeper-rows > thead > tr > th,
+.listkeeper-wrap > .listkeeper-scroll > table.listkeeper-rows > tbody > tr > td {
+  padding: 0.15em 0.6em;
+  white-space: nowrap;
 }
 
 table.listkeeper-rows th.listkeeper-sortable {
@@ -148,10 +154,10 @@ table.listkeeper-rows th.listkeeper-group:first-child {
 }
 
 /* the description wraps to three lines; the cell's hover text holds all of it */
-table.listkeeper-rows td.listkeeper-desc {
+.listkeeper-wrap > .listkeeper-scroll > table.listkeeper-rows > tbody > tr > td.listkeeper-desc {
   min-width: 22em;
   max-width: 30em;
-  white-space: normal !important;
+  white-space: normal;
 }
 
 table.listkeeper-rows td.listkeeper-desc .listkeeper-clamp {
