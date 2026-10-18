@@ -1,6 +1,6 @@
 # Listkeeper
 
-Point Listkeeper at any awesome list or best-of list on GitHub and get a table in your vault that shows which projects are alive, which carry published security advisories, and which ones the list itself has quietly dropped.
+Point Listkeeper at any awesome list or best-of list on GitHub. The whole list lands in your vault as two notes and one table that shows which projects are alive, which carry published security advisories, and which ones the list itself has quietly dropped.
 
 [![License](https://img.shields.io/github/license/amoslives/listkeeper)](LICENSE)
 
@@ -8,16 +8,25 @@ Point Listkeeper at any awesome list or best-of list on GitHub and get a table i
 
 An awesome list is a snapshot. The repositories behind it keep moving: some get archived, some pick up CVEs, some stop merging pull requests while their stars keep climbing. Listkeeper reads the list, asks GitHub about every repository in it, and keeps the answers in two notes that stay current on a schedule.
 
+- **The whole list in two notes.** A list of 1,000 projects becomes one view note holding the table and one entries note holding a bullet per project, not 1,000 files. The entries note keeps every value in inline fields that Dataview can read.
 - **A verdict with evidence.** Every row gets `ok`, `caution`, `check` or `unknown` from documented rules: archived, dropped by the source, deprecated in the source text, published advisories, an untouched issue backlog, a non-standard licence. One tap shows the facts behind it and records your own dated assessment next to them.
 - **Security advisories, not only stars.** With a token, each repository's published advisories arrive with severity and affected and patched version ranges.
-- **Whole lists in two notes.** A list of 1,000 projects is one view note and one entries note, not 1,000 files. The entries note keeps every value in inline fields that Dataview can read.
 - **Your edits survive refreshes.** Edited descriptions, your own headings and sub-bullets stay where you put them. A sync shows what the source list changed and lets you accept or dismiss it per entry.
 - **Star movement two ways.** Additions over the last four completed GitHub weeks on the first run, and a local net change once a sample between 20 and 60 days old exists.
 - **Light footprint.** No build step, no runtime dependency, no telemetry. It works on mobile, needs no token for the basics, and resumes an interrupted run after a reload.
 
 ## How it compares
 
-The GitHub plugins already in the directory solve narrower jobs: GitHub Stars shows star counts for links in a note, Import GitHub Readme brings one README into the vault, GitHub Repo Tools watches one repository, GitHub Stars Manager handles the repositories you starred yourself, and GitHub Embeds renders a single issue or pull request. Listkeeper starts from someone else's curated list, covers every repository in it at once, judges each one by the same rules, and keeps judging as the list and the repositories change. It talks to GitHub and to nothing else.
+| Plugin | Starts from | Covers | Adds to the vault |
+|---|---|---|---|
+| Listkeeper | Any awesome list or best-of list on GitHub | Every repository in the list, in one table | A verdict with evidence per repository, published advisories, star history, source sync, scheduled refresh |
+| GitHub Stars | Repository links in your own notes | Those links | Star counts |
+| GitHub Stars Manager | The repositories you starred | Your star list | A way to manage it |
+| Import GitHub Readme | One README | One file | The README text |
+| GitHub Repo Tools | One repository | One repository | Staleness alerts, a pull request dashboard, activity notifications |
+| GitHub Embeds | An issue, a pull request or a code snippet | One item per embed | A rendered embed |
+
+Listkeeper starts from someone else's curated list, judges every repository in it by the same rules, and keeps judging as the list and the repositories change.
 
 The verdict is a review aid, not a security guarantee or an installation recommendation.
 
@@ -50,7 +59,7 @@ On a narrow screen, the table scrolls horizontally while the Verdict and Name co
 
 ## Network use and accounts
 
-Listkeeper connects to two GitHub hosts and to nothing else:
+Listkeeper connects to two GitHub hosts:
 
 - `raw.githubusercontent.com` serves the source list's Markdown and the READMEs of any peer lists you configure.
 - `api.github.com` serves repository metadata (REST without a token, GraphQL with one), star history, published security advisories when a list has them enabled, and token validation.
