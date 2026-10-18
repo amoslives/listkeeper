@@ -1,26 +1,25 @@
 # Listkeeper
 
-Listkeeper turns a Markdown list of GitHub projects into a sortable table in an Obsidian vault.
+Point Listkeeper at any awesome list or best-of list on GitHub and get a table in your vault that shows which projects are alive, which carry published security advisories, and which ones the list itself has quietly dropped.
 
 [![License](https://img.shields.io/github/license/amoslives/listkeeper)](LICENSE)
 
-![A list of 194 agent harnesses displayed as a table in Obsidian. Each row shows the verdict, the name with its Evidence / review and Research actions, activity, assessment, new concerns, section and description; the remaining default columns are off-screen to the right.](screenshots/hero.png)
+![A list of 194 agent harnesses displayed as a table in Obsidian. Each row shows the verdict, the name, an Actions column with Evidence / review and Research, activity, assessment, new concerns, section and description; the remaining default columns are off-screen to the right.](screenshots/hero.png)
 
-Give Listkeeper an awesome list, a best-of list, or another Markdown file that links to GitHub repositories. It reads links from Markdown bullets and tables, fetches repository data from GitHub, and creates two notes:
+An awesome list is a snapshot. The repositories behind it keep moving: some get archived, some pick up CVEs, some stop merging pull requests while their stars keep climbing. Listkeeper reads the list, asks GitHub about every repository in it, and keeps the answers in two notes that stay current on a schedule.
 
-- A view note contains the rendered table.
-- An entries note contains one Markdown bullet for each project and stores its data in inline fields.
+- **A verdict with evidence.** Every row gets `ok`, `caution`, `check` or `unknown` from documented rules: archived, dropped by the source, deprecated in the source text, published advisories, an untouched issue backlog, a non-standard licence. One tap shows the facts behind it and records your own dated assessment next to them.
+- **Security advisories, not only stars.** With a token, each repository's published advisories arrive with severity and affected and patched version ranges.
+- **Whole lists in two notes.** A list of 1,000 projects is one view note and one entries note, not 1,000 files. The entries note keeps every value in inline fields that Dataview can read.
+- **Your edits survive refreshes.** Edited descriptions, your own headings and sub-bullets stay where you put them. A sync shows what the source list changed and lets you accept or dismiss it per entry.
+- **Star movement two ways.** Additions over the last four completed GitHub weeks on the first run, and a local net change once a sample between 20 and 60 days old exists.
+- **Light footprint.** No build step, no runtime dependency, no telemetry. It works on mobile, needs no token for the basics, and resumes an interrupted run after a reload.
 
-Listkeeper can refresh the GitHub data on a schedule. It can also read the source list again, add newly listed repositories, and mark repositories that the source removed. Each table row receives an `ok`, `caution`, `check`, or `unknown` verdict based on documented rules. The verdict is a review aid, not a security guarantee or installation recommendation.
+## How it compares
 
-## Why use two notes
+The GitHub plugins already in the directory solve narrower jobs: GitHub Stars shows star counts for links in a note, Import GitHub Readme brings one README into the vault, GitHub Repo Tools watches one repository, GitHub Stars Manager handles the repositories you starred yourself, and GitHub Embeds renders a single issue or pull request. Listkeeper starts from someone else's curated list, covers every repository in it at once, judges each one by the same rules, and keeps judging as the list and the repositories change. It talks to GitHub and to nothing else.
 
-- **Large lists remain manageable.** A list with 1,000 projects still uses two notes instead of creating 1,000 files in the vault.
-- **The source can be any supported Markdown list.** Listkeeper accepts repository links in bullets and tables. It can read a repository README or another Markdown file in the repository.
-- **Repository data stays with each entry.** The entries note records activity, issues, pull requests, releases, license information, security information, and derived values when the GitHub API provides them.
-- **Star additions are available on first enrichment.** Listkeeper fetches additions across four completed GitHub API weeks, with the actual period shown in the evidence view. It also saves dated star counts locally and calculates net change once it has a sample between 20 and 60 days old.
-- **Manual notes are preserved.** A refresh replaces recognized entry lines but preserves your headings, surrounding prose, edited descriptions, custom sections, and indented sub-bullets.
-- **The plugin has no build step or third-party runtime package.** The distributed plugin consists of `main.js`, `manifest.json`, and `styles.css`. It uses the Obsidian API and works on desktop and mobile.
+The verdict is a review aid, not a security guarantee or an installation recommendation.
 
 ## Using the table
 
@@ -37,11 +36,11 @@ All active terms must match a row. A leading `-` excludes matches.
 
 ![The table filtered with verdict:check. Seven rows remain, and their sections, activity and new concerns show why each needs a check before installing.](screenshots/filter-check.png)
 
-Up to 13 columns are selected by default. A column appears only when at least one entry contains that field. Use **Columns**, or right-click the header row, to change the selection. Hidden columns can still be used in filters.
+Up to 14 columns are selected by default. A column appears only when at least one entry contains that field. Use **Columns**, or right-click the header row, to change the selection. Hidden columns can still be used in filters.
 
 When you add a list, you can set the source repository, note name, vault folder, minimum star count, maximum age of the last push, software or reference-list expectations, advisory collection, peer lists, Markdown file, and an optional entry limit.
 
-Tap **Evidence / review** under a project name to see automatic concerns, check dates, advisory links and version ranges, and save a dated assessment with your reason. Your assessment acknowledges the current concerns; new findings are counted separately. Quiet activity alone does not require a review. The same action exposes source-description and section conflicts with **Accept** and **Dismiss** buttons.
+Tap **Evidence / review** in the Actions column to see automatic concerns, check dates, advisory links and version ranges, and save a dated assessment with your reason. Your assessment acknowledges the current concerns; new findings are counted separately. Quiet activity alone does not require a review. The same action exposes source-description and section conflicts with **Accept** and **Dismiss** buttons.
 
 Tap **Research** to create a note only for the selected project, or reopen its explicitly attached research link. Your research note contains a repository link and an editable heading; fetched metadata remains in the entries note.
 

@@ -119,6 +119,14 @@ table.listkeeper-rows th.listkeeper-sortable:hover {
   color: var(--text-accent);
 }
 
+table.listkeeper-rows th.listkeeper-actions {
+  text-align: left;
+}
+
+table.listkeeper-rows td.listkeeper-actions button {
+  margin-right: 0.3em;
+}
+
 table.listkeeper-rows td.listkeeper-num {
   text-align: right;
   font-variant-numeric: tabular-nums;
