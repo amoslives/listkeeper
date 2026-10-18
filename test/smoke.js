@@ -57,6 +57,8 @@ async function requestUrl(req) {
   }
   if (req.url === "https://raw.githubusercontent.com/acme/awesome-things/main/README.md")
     return { status: 200, text: README };
+  if (req.url === "https://raw.githubusercontent.com/acme/peer-list/main/README.md")
+    return { status: 200, text: "# Peer list\n\n- [alpha](https://github.com/acme/alpha) - listed here too\n" };
   if (req.url === "https://api.github.com/graphql") {
     gqlCalls++;
     const asked = [...JSON.parse(req.body).query.matchAll(/(r\d+): repository\(owner: "([^"]+)", name: "([^"]+)"\)/g)];
@@ -148,11 +150,12 @@ const obsidian = {
   Plugin: class {
     constructor(a, m) { this.app = a; this.manifest = m; }
     addStatusBarItem() { return { setText() {} }; }
-    addRibbonIcon() {} addCommand() {} addSettingTab() {} registerInterval() {}
+    addRibbonIcon() {} addCommand() {} addSettingTab(tab) { this.settingTab = tab; } registerInterval() {}
     registerMarkdownCodeBlockProcessor() {}
     async loadData() { return {}; } async saveData() {}
   },
-  PluginSettingTab: class {}, Setting: class {}, Modal: class {}, SuggestModal: class {}, Menu: class {},
+  PluginSettingTab: class { constructor(a, p) { this.app = a; this.plugin = p; } }, Setting: class {},
+  Modal: class {}, SuggestModal: class {}, Menu: class {},
   MarkdownRenderChild: class {},
   Notice: class { constructor(msg) { notices.push(msg); } },
   requestUrl, TFile, normalizePath: (p) => p.replace(/\/+/g, "/").replace(/^\/|\/$/g, ""),
@@ -283,6 +286,7 @@ require.cache.obsidian = { id: "obsidian", filename: "obsidian", loaded: true, e
   folders.add("Legacy/nested");
   const originals = new Map([
     ["Legacy/project.md", "Original body and custom properties stay here."],
+    ["Legacy/nourl.md", "A note with a repo property but no url property."],
     ["Legacy/unrelated.md", "Unrelated note"],
     ["Legacy/attachment.png", "Attachment"],
     ["Legacy/nested/project.md", "Nested note"],
@@ -292,6 +296,7 @@ require.cache.obsidian = { id: "obsidian", filename: "obsidian", loaded: true, e
     repo: "acme/alpha", app: "alpha", url: "https://github.com/acme/alpha", stars: 125,
     history: ["2026-09-01:120"],
   });
+  frontmatter.set("Legacy/nourl.md", { repo: "acme/beta", app: "beta", stars: 7 });
   frontmatter.set("Legacy/nested/project.md", { repo: "acme/beta" });
 
   await plugin.convertToOneNote(conversion, false);
@@ -299,6 +304,9 @@ require.cache.obsidian = { id: "obsidian", filename: "obsidian", loaded: true, e
   for (const [p, text] of originals) assert.strictEqual(files.get(p), text, `original preserved: ${p}`);
   assert(files.get("Legacy.md").includes("file: entries/Legacy.md"), "converted view is usable");
   assert(files.get("entries/Legacy.md").includes("[stars:: 125]"), "supported fields converted");
+  assert(files.get("entries/Legacy.md").includes("- [beta](https://github.com/acme/beta) [name:: beta]"),
+    "a note with repo but no url converts to a linked bullet the table can read back");
+  assert.strictEqual(Listkeeper.parseEntries(files.get("entries/Legacy.md")).length, 2, "both converted bullets parse");
   assert.deepStrictEqual(JSON.parse(files.get(".obsidian/plugins/listkeeper/data/legacy-history.json"))
     .entries["acme/alpha"], ["2026-09-01:120"], "history preserved before trash");
 
@@ -309,9 +317,9 @@ require.cache.obsidian = { id: "obsidian", filename: "obsidian", loaded: true, e
   assert.strictEqual(trashed.length, 0, "a failed conversion never trashes originals");
 
   await plugin.convertToOneNote(conversion, true);
-  assert.deepStrictEqual(trashed, ["Legacy/project.md"], "only the converted direct child is trashed");
+  assert.deepStrictEqual(trashed.slice().sort(), ["Legacy/nourl.md", "Legacy/project.md"], "only the converted direct children are trashed");
   for (const [p, text] of originals) {
-    if (p !== "Legacy/project.md") assert.strictEqual(files.get(p), text, `unrelated file preserved: ${p}`);
+    if (!trashed.includes(p)) assert.strictEqual(files.get(p), text, `unrelated file preserved: ${p}`);
   }
   assert(folders.has("Legacy") && folders.has("Legacy/nested"), "source and nested folders remain");
   const fixture = (tag, extra = {}) => ({ label: tag, tag, source: "acme/awesome-things", parent: "Fixtures", ...extra });
@@ -644,5 +652,31 @@ require.cache.obsidian = { id: "obsidian", filename: "obsidian", loaded: true, e
   assert(!notices.some((n) => n.includes("never-print-this-token")), "token never appears in notices");
   assert(requests.filter((req) => req.headers?.Authorization).every((req) => req.url.startsWith("https://api.github.com/")), "credentials go only to the GitHub API host");
 
-  console.log("ok: imports, fair enrichment, evidence/reviews, API history, source conflicts, research notes, filters, and conversion safety");
+  // cross-list: a peer list that carries a repo adds [lists:: N]; a repeat scan leaves the note untouched
+  const crossed = fixture("crossed", { peers: { "acme/peer-list": "peer-list" } });
+  await saveRows(crossed, [entry("acme/alpha"), entry("acme/beta")]);
+  await plugin.crossList(crossed);
+  const crossedRows = currentRows(crossed);
+  assert.strictEqual(crossedRows.find((r) => r.name === "alpha").lists, 2, "repo carried by one peer list gets [lists:: 2]");
+  assert.strictEqual(crossedRows.find((r) => r.name === "beta").lists, undefined, "repo absent from the peer list carries no lists field");
+  const crossedText = files.get(plugin.entriesPath(crossed));
+  await plugin.crossList(crossed);
+  assert.strictEqual(files.get(plugin.entriesPath(crossed)), crossedText, "a repeat scan with no change rewrites nothing");
+
+  // settings tab: declarative definitions, which Obsidian renders and indexes for settings search
+  const tab = plugin.settingTab;
+  const flat = (items) => items.flatMap((i) => i.items ? [i, ...flat(i.items)] : [i]);
+  const defs = flat(tab.getSettingDefinitions());
+  assert(defs.length >= 8, "settings tab describes its rows");
+  for (const d of defs) {
+    if (d.control) assert(d.control.key in plugin.settings, `control key ${d.control.key} is a settings property`);
+    assert([d.control, d.render, d.action].filter(Boolean).length <= 1, `${d.name}: control, render and action are exclusive`);
+    const text = d.name || d.heading;
+    assert(!/\bsettings\b/i.test(text), `${text}: no "settings" in a settings heading or name`);
+    if (!text.includes(":")) assert(text.split(" ").slice(1).every((w) => w === "GitHub" || w === w.toLowerCase()), `${text} is sentence case`);
+  }
+  assert(defs.filter((d) => d.render).length === 1 + 2 * plugin.loadConfigs().length, "token row and two rows per managed list use render");
+  assert.strictEqual(typeof tab.display, "undefined", "no imperative display(): minAppVersion is 1.13.0");
+
+  console.log("ok: imports, fair enrichment, evidence/reviews, API history, source conflicts, research notes, filters, conversion safety, cross-list scans, and settings definitions");
 })().catch((e) => { console.error("FAIL:", e.message); process.exit(1); });

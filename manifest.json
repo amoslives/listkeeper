@@ -2,7 +2,7 @@
   "id": "listkeeper",
   "name": "Listkeeper",
   "version": "1.0.0",
-  "minAppVersion": "1.9.0",
+  "minAppVersion": "1.13.0",
   "description": "Turn any GitHub list, awesome list or best-of list into a sortable, filterable table in your vault: two notes per list, a verdict on every repo, security advisories, and star history kept on a schedule. Works on mobile.",
   "author": "Rochan",
   "authorUrl": "https://github.com/amoslives",
