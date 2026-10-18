@@ -4,7 +4,7 @@ Point Listkeeper at any awesome list or best-of list on GitHub and get a table i
 
 [![License](https://img.shields.io/github/license/amoslives/listkeeper)](LICENSE)
 
-![A list of 194 agent harnesses displayed as a table in Obsidian. Each row shows the verdict, the name, an Actions column with Evidence / review and Research, activity, assessment, new concerns, section and description; the remaining default columns are off-screen to the right.](screenshots/hero.png)
+![A list of 195 agent harnesses displayed as a table in Obsidian. Each row shows the verdict, the name, an Actions column with Evidence / review and Research, activity, assessment, new concerns, section and description; the remaining default columns are off-screen to the right.](screenshots/hero.png)
 
 An awesome list is a snapshot. The repositories behind it keep moving: some get archived, some pick up CVEs, some stop merging pull requests while their stars keep climbing. Listkeeper reads the list, asks GitHub about every repository in it, and keeps the answers in two notes that stay current on a schedule.
 
@@ -34,7 +34,7 @@ stars>1000 lang:rust pushed>2026-06-01
 
 All active terms must match a row. A leading `-` excludes matches.
 
-![The table filtered with verdict:check. Seven rows remain, and their sections, activity and new concerns show why each needs a check before installing.](screenshots/filter-check.png)
+![The table filtered with verdict:check. Five rows remain, and their sections, activity and new concerns show why each needs a check before installing.](screenshots/filter-check.png)
 
 Up to 14 columns are selected by default. A column appears only when at least one entry contains that field. Use **Columns**, or right-click the header row, to change the selection. Hidden columns can still be used in filters.
 
