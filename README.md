@@ -15,13 +15,13 @@ Listkeeper turns an awesome list or best-of list on GitHub into two notes in you
 
 ## How it compares
 
-| Plugin | Starts from | Covers | Adds to the vault |
+| Plugin | Starts from | Covers | What you get |
 |---|---|---|---|
 | Listkeeper | Any awesome list or best-of list on GitHub | Every repository in the list, in one table | A verdict per repository, published advisories, star history, source sync, scheduled refresh |
 | GitHub Stars | Repository links in your own notes | Those links | Star counts |
-| GitHub Stars Manager | The repositories you starred | Your star list | A way to manage it |
+| GitHub Stars Manager | The repositories you starred | Your star list | A side-panel view with tags, notes, search and filters |
 | Import GitHub Readme | One README | One file | The README text |
-| GitHub Repo Tools | One repository | One repository | Staleness alerts, a pull request dashboard, activity notifications |
+| GitHub Repo Tools | A local clone of one repository | One repository | A behind-remote count with Pull, a pull request dashboard, commit, push, branch and stash actions |
 | GitHub Embeds | An issue, a pull request or a code snippet | One item per embed | A rendered embed |
 
 The verdict is a review aid, not a security guarantee or an installation recommendation.
