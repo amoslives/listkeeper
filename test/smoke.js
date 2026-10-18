@@ -242,6 +242,7 @@ require.cache.obsidian = { id: "obsidian", filename: "obsidian", loaded: true, e
   assert(Listkeeper.sortRows([{ a: 1 }, { b: 1 }, { a: 0 }], [["a", 1]]).map((r) => r.a).join() === "0,1,",
     "blank last");
   const keys = new Set(Listkeeper.COLUMNS.map((c) => c[0]));
+  assert(Listkeeper.COLUMNS[2][0] === "actions" && Listkeeper.DEFAULT_COLUMNS[2] === "actions", "row actions have their own default column right after the name");
   assert(Listkeeper.DEFAULT_COLUMNS.every((k) => keys.has(k)) && Listkeeper.DEFAULT_COLUMNS.length < keys.size / 2,
     "the default columns exist and are under half of all columns");
   const best = Listkeeper.PRESETS["Best bets, ok with high criticality"].test;

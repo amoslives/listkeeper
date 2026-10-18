@@ -175,7 +175,7 @@ The command performs a GitHub-data refresh after the source comparison.
 
 ### Selected-project research notes
 
-**Research**, under each repository name, opens or creates a research note for that project. New notes live in a `research/` folder beside the view note, use an owner/repository-based name, and contain only a repository link and an editable heading. Name collisions receive a numbered suffix; existing files are never overwritten or adopted just because their name matches.
+**Research**, in the Actions column, opens or creates a research note for that project. New notes live in a `research/` folder beside the view note, use an owner/repository-based name, and contain only a repository link and an editable heading. Name collisions receive a numbered suffix; existing files are never overwritten or adopted just because their name matches.
 
 The entries note attaches the note with an explicitly identified line:
 
@@ -255,16 +255,16 @@ The `listkeeper` code block parses every recognized bullet in the entries note a
 
 Click a column header to sort by that column. Shift-click another header to add it as the next sort key. The arrows display the priority of each sort key. A normal click replaces the existing sort chain. Blank values always sort last.
 
-The default selection contains these 13 columns:
+The default selection contains these 14 columns:
 
 ```text
-Verdict, Name, Activity, Assessment, New concerns, Section, Description,
+Verdict, Name, Actions, Activity, Assessment, New concerns, Section, Description,
 Stars, Stars added / 4 weeks, Local net change, Last push, Advisories, License
 ```
 
 A selected column appears only when at least one entry has a value for it. Use **Columns**, or right-click the header row, to select other available columns, show every available column, or restore the default selection. The selection is stored in the plugin settings and applies to every list.
 
-The Verdict and Name columns remain visible while the table scrolls horizontally. A second horizontal scrollbar stays at the bottom of the visible table area. The right edge fades when more columns are available off-screen. The status text reports the number of matching rows, active filter terms, visible columns, and available columns.
+The Actions column holds **Evidence / review** and **Research** for rows that point at a GitHub repository; it has no sort order. The Verdict and Name columns remain visible while the table scrolls horizontally. A second horizontal scrollbar stays at the bottom of the visible table area. The right edge fades when more columns are available off-screen. The status text reports the number of matching rows, active filter terms, visible columns, and available columns.
 
 Descriptions are limited to three visible lines. Hover the description, or tap **Evidence / review**, to read the full text. Hover a header to read its field description. Repository names open their GitHub URL.
 

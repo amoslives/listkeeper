@@ -1339,6 +1339,7 @@ const TABLE_HINT = "Click a header to sort, shift-click another to add a key, " 
 const COLUMNS = [
   ["verdict", "Verdict", false, "Automatic review concerns. Tap Evidence / review for facts and assessment."],
   ["name", "Name", false, "Opens the repo."],
+  ["actions", "Actions", false, "Evidence / review shows the facts and takes your assessment; Research opens a note of your own."],
   ["activity", "Activity", false, "Observed cadence, separate from review concerns."],
   ["assessment", "Assessment", false, "Your dated assessment; see Evidence / review for the reason."],
   ["newfindings", "New concerns", true, "Concerns not acknowledged by your last review."],
@@ -1385,7 +1386,7 @@ const GROUPS = { verdict: "Entry", stars: "Activity", engagement: "Health", advi
 const GROUP_OF = {};
 { let g = ""; for (const [k] of COLUMNS) { g = GROUPS[k] || g; GROUP_OF[k] = g; } }
 // the columns a fresh install shows; the rest are ticked on from the Columns button or the header row's context menu
-const DEFAULT_COLUMNS = ["verdict", "name", "activity", "assessment", "newfindings", "section", "desc", "stars", "additions", "gained", "pushed", "advisories", "lic"];
+const DEFAULT_COLUMNS = ["verdict", "name", "actions", "activity", "assessment", "newfindings", "section", "desc", "stars", "additions", "gained", "pushed", "advisories", "lic"];
 
 const PRESETS = {
   "All": { sort: ["stars", -1] },
@@ -1612,8 +1613,7 @@ class ListTable extends MarkdownRenderChild {
     });
     const pick = controls.createEl("button", { text: "Columns" });
     pick.title = "Choose which columns to show. Right-clicking the header row does the same.";
-    pick.addEventListener("click", (e) => this.columnMenu(e,
-      COLUMNS.filter(([k]) => k === "name" || this.rows.some((r) => !isEmpty(r[k])))));
+    pick.addEventListener("click", (e) => this.columnMenu(e, this.presentColumns()));
     this.count = controls.createSpan({ cls: "listkeeper-count" });
     // the table's own scrollbar sits below 600 rows, so a mirror of it is pinned to the
     // bottom of the view while the table is on screen; it shows on use and fades when idle
@@ -1635,6 +1635,12 @@ class ListTable extends MarkdownRenderChild {
     this.draw();
   }
 
+  /** Columns with something to show: Name always, Actions when a row points at a repo, the rest when a row carries the field. */
+  presentColumns() {
+    return COLUMNS.filter(([k]) => k === "name" ||
+      (k === "actions" ? !!this.cfg && this.rows.some((r) => repoFrom("", r.url)) : this.rows.some((r) => !isEmpty(r[k]))));
+  }
+
   /** The list-relative context, then a verdict on every row. */
   judge() {
     const big = this.rows.filter((r) => r.stars >= VERDICT.bigStars && !isEmpty(r.engagement))
@@ -1649,7 +1655,7 @@ class ListTable extends MarkdownRenderChild {
     const preset = PRESETS[this.preset] || PRESETS.All;
     // the chosen columns, and only those that carry a value somewhere in this list
     const chosen = new Set(this.plugin.settings.columns || DEFAULT_COLUMNS);
-    const present = COLUMNS.filter(([k]) => k === "name" || this.rows.some((r) => !isEmpty(r[k])));
+    const present = this.presentColumns();
     const cols = present.filter(([k]) => k === "name" || chosen.has(k));
     const ctx = this.ctx;
     const rows = sortRows(
@@ -1668,6 +1674,11 @@ class ListTable extends MarkdownRenderChild {
     }
     const head = thead.createEl("tr");
     for (const [k, label, , help] of cols) {
+      if (k === "actions") {   // buttons, nothing to sort by
+        const th = head.createEl("th", { text: label, cls: "listkeeper-actions" });
+        th.title = help;
+        continue;
+      }
       const at = chain.findIndex(([sk]) => sk === k);
       const rank = chain.length > 1 && at >= 0 ? SUPERSCRIPT[at] || "" : "";
       const mark = at < 0 ? "" : (chain[at][1] < 0 ? " ▼" : " ▲") + rank;
@@ -1697,11 +1708,12 @@ class ListTable extends MarkdownRenderChild {
         } else if (k === "name") {
           const a = td.createEl("a", { text: r.name, href: r.url, cls: "external-link" });
           a.addEventListener("click", (e) => { e.preventDefault(); window.open(r.url); });
+        } else if (k === "actions") {
+          td.addClass("listkeeper-actions");
           if (this.cfg && repoFrom("", r.url)) {
-            const actions = td.createDiv();
-            actions.createEl("button", { text: Object.keys(r.state.source?.conflicts || {}).length ? "Evidence / source changes" : "Evidence / review" }).addEventListener("click", () =>
+            td.createEl("button", { text: Object.keys(r.state.source?.conflicts || {}).length ? "Evidence / source changes" : "Evidence / review" }).addEventListener("click", () =>
               new EntryReviewModal(this.plugin.app, this.plugin, this.cfg, r).open());
-            actions.createEl("button", { text: "Research" }).addEventListener("click", () =>
+            td.createEl("button", { text: "Research" }).addEventListener("click", () =>
               this.plugin.openResearch(this.cfg, repoFrom("", r.url)));
           }
         } else if (k === "desc" && !isEmpty(v)) {
