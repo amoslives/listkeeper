@@ -4,7 +4,7 @@ Listkeeper turns a Markdown list of GitHub projects into a sortable table in an 
 
 [![License](https://img.shields.io/github/license/amoslives/listkeeper)](LICENSE)
 
-![A list of 177 agent tools displayed as a table in Obsidian. The table includes the verdict, name, section, description, stars, stars gained, last push, recent commits, engagement, criticality, issue ratio, advisories, and license.](screenshots/hero.png)
+![A list of 194 agent harnesses displayed as a table in Obsidian. Each row shows the verdict, the name with its Evidence / review and Research actions, activity, assessment, new concerns, section and description; the remaining default columns are off-screen to the right.](screenshots/hero.png)
 
 Give Listkeeper an awesome list, a best-of list, or another Markdown file that links to GitHub repositories. It reads links from Markdown bullets and tables, fetches repository data from GitHub, and creates two notes:
 
@@ -35,7 +35,7 @@ stars>1000 lang:rust pushed>2026-06-01
 
 All active terms must match a row. A leading `-` excludes matches.
 
-![The table filtered with verdict:check. The remaining rows show the fields that caused a check verdict.](screenshots/filter-check.png)
+![The table filtered with verdict:check. Seven rows remain, and their sections, activity and new concerns show why each needs a check before installing.](screenshots/filter-check.png)
 
 Up to 13 columns are selected by default. A column appears only when at least one entry contains that field. Use **Columns**, or right-click the header row, to change the selection. Hidden columns can still be used in filters.
 
@@ -45,7 +45,7 @@ Tap **Evidence / review** under a project name to see automatic concerns, check 
 
 Tap **Research** to create a note only for the selected project, or reopen its explicitly attached research link. Your research note contains a repository link and an editable heading; fetched metadata remains in the entries note.
 
-![The Add a list dialog with its source, folder, thresholds, advisory, peer-list, Markdown-file, and limit fields.](screenshots/add-list.png)
+![The Add a list dialog with its source, name, folder, threshold, project expectation, advisory, peer-list, Markdown-file and limit fields.](screenshots/add-list.png)
 
 On a narrow screen, the table scrolls horizontally while the Verdict and Name columns remain visible. The screenshots use the Minimal theme.
 
